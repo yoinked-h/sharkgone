@@ -119,6 +119,7 @@ module Source
       Source::URL::PixivFactory,
       Source::URL::Pixellent,
       Source::URL::LitLink,
+      Source::URL::Odaibako,
     ]
 
     # Parse a URL into a subclass of Source::URL, or raise an exception if the URL is not a valid HTTP or HTTPS URL.
