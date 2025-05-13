@@ -589,13 +589,6 @@ module Danbooru
     def inkbunny_password
     end
 
-    # Your Bluesky identifier and password. The identifier must include the domain that you see on your profile, ie "username.bsky.social"
-    def bluesky_identifier
-    end
-
-    def bluesky_password
-    end
-
     # Your Reddit "reddit_session" cookie.
     def reddit_session_cookie
     end
