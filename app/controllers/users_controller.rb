@@ -3,7 +3,7 @@
 class UsersController < ApplicationController
   respond_to :html, :xml, :json
 
-  rate_limit :create, rate: 1.0/5.minutes, burst: 10
+  rate_limit :create, rate: 1.0/5.minutes, burst: 5
 
   def new
     @user = authorize User.new
