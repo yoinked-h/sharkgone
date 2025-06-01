@@ -94,13 +94,13 @@ AIMetadata.fetch_file_metadata = function() {
 };
 
 AIMetadata.load_from_file = function() {
-  Utility.notice("Loading metadata...");
+  Danbooru.Notice.notice("Loading metadata...");
 
   this.fetch_file_metadata().then(this.fill_metadata).then(function (success) {
     var message = success ? "Metadata copied." : "Metadata copied; conflicting fields ignored.";
-    Utility.notice(message);
+    Danbooru.Notice.notice(message);
   }).catch(function () {
-    Utility.notice("Loading metadata failed.");
+    Danbooru.Notice.notice("Loading metadata failed.");
   });
 
   return false;
