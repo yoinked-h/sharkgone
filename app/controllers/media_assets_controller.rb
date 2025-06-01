@@ -40,8 +40,8 @@ class MediaAssetsController < ApplicationController
   def destroy
     @media_asset = authorize MediaAsset.find(params[:id])
     @media_asset.trash!(CurrentUser.user)
-    flash[:notice] = "File deleted"
-    respond_with(@media_asset)
+
+    respond_with(@media_asset, notice: "File deleted")
   end
 
   def image
