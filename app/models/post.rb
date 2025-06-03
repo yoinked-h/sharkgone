@@ -1984,6 +1984,16 @@ class Post < ApplicationRecord
       end
     end
 
+    def post_is_not_allowed
+      return if uploader.posts.active.exists?
+
+      blocked_tags = Danbooru.config.new_uploader_blocked_ai_tags
+      if blocked_tags.present? && ai_tags_match?(blocked_tags)
+        errors.add(:base, "Post failed, try again later")
+        throw :abort # Don't bother returning other validation errors
+      end
+    end
+
     def validate_changed_tags
       return if CurrentUser.user.nil? || uploader == CurrentUser.user || CurrentUser.user.is_builder?
 
@@ -2108,6 +2118,11 @@ class Post < ApplicationRecord
     Cache.get(Cache.hash("#{Danbooru.config.view_counter_salt}-#{ip_addr}-#{post_id}"), 1.week) do
       Post.increment_counter(:views, post_id)
     end
+  end
+
+  # @param tags [String] The AI tag query.
+  def ai_tags_match?(tags)
+    media_asset.ai_tags_match?(tags)
   end
 
   def safeblocked?
