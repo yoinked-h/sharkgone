@@ -4,7 +4,7 @@ ruby "~> 3.3.2"
 
 gem 'dotenv-rails', require: "dotenv/load"
 
-gem "rails", "~> 7.2"
+gem "rails", "~> 8.0"
 gem "pg"
 gem "simple_form"
 gem "sanitize"
