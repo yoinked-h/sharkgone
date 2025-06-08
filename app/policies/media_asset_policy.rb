@@ -25,6 +25,14 @@ class MediaAssetPolicy < ApplicationPolicy
     record.post.blank?
   end
 
+  def rate_limit_for_image(**_options)
+    { rate: 1.0 / 1.second, burst: 20 }
+  end
+
+  def rate_limit_for_metadata(**_options)
+    { rate: 1.0 / 1.second, burst: 3 }
+  end
+
   def api_attributes
     attributes = super + [:variants]
     attributes -= [:md5, :file_key, :variants] if !can_see_image?

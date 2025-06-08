@@ -25,6 +25,10 @@ class ModerationReportPolicy < ApplicationPolicy
     record.model.class != MediaAsset || can_see_moderation_reports?
   end
 
+  def rate_limit_for_create(**_options)
+    { rate: 1.0 / 1.minute, burst: 10 }
+  end
+
   def permitted_attributes_for_create
     [:model_type, :model_id, :reason]
   end
