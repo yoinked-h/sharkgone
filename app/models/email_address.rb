@@ -62,7 +62,7 @@ class EmailAddress < ApplicationRecord
   end
 
   def validate_deliverable
-    if Danbooru::EmailAddress.parse(address)&.undeliverable?(allow_smtp: Rails.env.production?)
+    if Danbooru::EmailAddress.parse(address)&.undeliverable?
       errors.add(:address, "is invalid or does not exist")
     end
   end
