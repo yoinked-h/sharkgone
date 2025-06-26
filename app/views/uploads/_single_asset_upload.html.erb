@@ -143,7 +143,7 @@
                 </span>
               </div>
 
-              <%= f.input :tag_string, label: false, hint: tag.span("Ctrl+Enter to submit", class: "desktop-only"), input_html: { "data-autocomplete": "tag-edit", "data-shortcut": "e", value: post.tag_string } %>
+              <%= f.input :tag_string, label: false, hint: tag.span("Ctrl+Enter to submit", class: "desktop-only"), input_html: { class: "text-sm", "data-autocomplete": "tag-edit", "data-shortcut": "e", value: post.tag_string } %>
 
               <% if CurrentUser.post_upload_count < 10 %>
                 <p class="fineprint my-4">Read the <%= link_to_wiki "upload rules", "help:upload_rules" %> before uploading.</p>
