@@ -191,6 +191,7 @@ Autocomplete.moveCursorWordLeft = function (target) {
 
   if (match) {
     target.selectionStart = target.selectionEnd = match.index;
+    Autocomplete.scrollCursorIntoView(target, "backward");
   }
 }
 
@@ -208,6 +209,7 @@ Autocomplete.moveCursorWordRight = function (target) {
 
   if (match) {
     target.selectionStart = target.selectionEnd = before_caret_text.length + match[0].length;
+    Autocomplete.scrollCursorIntoView(target, "forward");
   }
 }
 
@@ -226,6 +228,7 @@ Autocomplete.moveSelectionWordLeft = function (target) {
   }
 
   target.selectionDirection = direction;
+  Autocomplete.scrollCursorIntoView(target, direction);
 }
 
 Autocomplete.moveSelectionWordRight = function (target) {
@@ -243,6 +246,21 @@ Autocomplete.moveSelectionWordRight = function (target) {
   }
 
   target.selectionDirection = direction;
+  Autocomplete.scrollCursorIntoView(target, direction);
+}
+
+// Scroll the input field so that the cursor is visible.
+// @param direction {String} - The direction the cursor is moving ("backward" or "forward").
+Autocomplete.scrollCursorIntoView = function (input, direction = "backward") {
+  let caret = (direction === "backward") ? input.selectionStart : input.selectionEnd;
+  let selectionStart = input.selectionStart;
+  let selectionEnd = input.selectionEnd;
+  let selectionDirection = input.selectionDirection;
+
+  input.setSelectionRange(caret, caret);
+  input.blur();
+  input.focus();
+  input.setSelectionRange(selectionStart, selectionEnd, selectionDirection);
 }
 
 // If we press tab while the autocomplete menu is open but nothing is
