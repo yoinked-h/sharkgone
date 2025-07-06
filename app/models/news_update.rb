@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
 class NewsUpdate < ApplicationRecord
-  attr_accessor :duration_in_days
-
   belongs_to :creator, class_name: "User"
   belongs_to :updater, class_name: "User", default: -> { creator }
   scope :recent, -> { where("created_at >= ?", 2.weeks.ago).order(created_at: :desc).limit(5) }
@@ -11,7 +9,6 @@ class NewsUpdate < ApplicationRecord
   deletable
   scope :active, -> { undeleted.where("created_at + duration >= ?", Time.zone.now) }
 
-  before_validation :parse_duration_in_days
   validate :validate_duration, if: :duration_changed?
   validates :message, presence: true, if: :message_changed?
 
@@ -28,8 +25,8 @@ class NewsUpdate < ApplicationRecord
     q.apply_default_order(params)
   end
 
-  def parse_duration_in_days
-    self.duration = duration_in_days.to_i.days if duration_in_days.present?
+  def duration_in_days=(days)
+    self.duration = days.to_i.days
   end
 
   def validate_duration

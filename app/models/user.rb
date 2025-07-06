@@ -101,6 +101,8 @@ class User < ApplicationRecord
 
   attr_reader :password
 
+  normalizes :blacklisted_tags, with: ->(string) { string.to_s.lines.map(&:strip).join("\n") }
+
   validates :name, user_name: true, on: :create
   validates :password, length: { minimum: 5 }, if: ->(rec) { rec.new_record? || rec.password.present? }
   validates :default_image_size, inclusion: { in: %w[large original] }
@@ -110,7 +112,6 @@ class User < ApplicationRecord
   validate :validate_custom_css, if: :custom_style_changed?
   validate :validate_add_extra_data_attributes, unless: :new_record?
   validate :validate_not_signing_up_from_proxy, if: :new_record?
-  before_validation :normalize_blacklisted_tags
   before_create :promote_to_owner_if_first_user
 
   has_many :ai_metadata_versions, foreign_key: :updater_id, dependent: :destroy
@@ -585,11 +586,6 @@ class User < ApplicationRecord
 
     def rewrite_blacklist(old_name, new_name)
       blacklisted_tags.gsub!(/(?:^| )([-~])?#{Regexp.escape(old_name)}(?: |$)/i) { " #{$1}#{new_name} " }
-    end
-
-    def normalize_blacklisted_tags
-      return unless blacklisted_tags.present?
-      self.blacklisted_tags = blacklisted_tags.lines.map(&:strip).join("\n")
     end
 
     # @return [Array<String>] The list of blacklist rules. Each line in the blacklist is a rule.
