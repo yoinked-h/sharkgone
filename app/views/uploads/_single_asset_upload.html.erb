@@ -150,7 +150,7 @@
               <% end %>
 
               <div class="mb-4 flex items-center gap-2">
-                <%= f.submit "Post", class: "button-primary button-sm", id: "create-post-button" %>
+                <%= f.submit "Post", class: "button-primary" %>
 
                 <% if CurrentUser.is_contributor? %>
                   <%= f.input :is_pending, as: :boolean, label: "Upload for approval", wrapper_html: { class: "!m-0" }, input_html: { checked: post.is_pending? } %>
