@@ -621,6 +621,14 @@ module Danbooru
     def xiaohongshu_web_session_cookie
     end
 
+    # Your Huashijie "userId" cookie.
+    def huashijie_user_id
+    end
+
+    # Your Huashijie "token" cookie.
+    def huashijie_session_cookie
+    end
+
     # Your Gelbooru user ID.
     def gelbooru_user_id
     end
