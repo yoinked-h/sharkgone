@@ -3,6 +3,8 @@
 class UsersController < ApplicationController
   respond_to :html, :xml, :json
 
+  verify_captcha only: :create
+
   def new
     @user = authorize User.new
     respond_with(@user)
@@ -60,26 +62,10 @@ class UsersController < ApplicationController
   end
 
   def create
-    user_verifier = UserVerifier.new(CurrentUser.user, request)
+    user_signup = UserSignup.new(request)
+    @user = authorize(user_signup.user)
 
-    @user = authorize User.new(
-      last_ip_addr: request.remote_ip,
-      last_logged_in_at: Time.zone.now,
-      requires_verification: user_verifier.requires_verification?,
-      level: user_verifier.initial_level,
-      name: params[:user][:name],
-      password: params[:user][:password],
-      password_confirmation: params[:user][:password_confirmation],
-      email_address_attributes: { address: params.dig(:user, :email_address, :address) },
-    )
-
-    UserEvent.build_from_request(@user, :user_creation, request)
-
-    if !CaptchaService.new.verify_request(request)
-      @user.errors.add(:base, "Invalid captcha, try again.")
-    elsif @user.save(context: [:create, :deliverable])
-      session[:user_id] = @user.id
-      UserMailer.with_request(request).welcome_user(@user).deliver_later
+    if @user.save(context: [:create, :deliverable])
       set_current_user
     end
 
