@@ -69,6 +69,7 @@ class UserDeletion
     user.api_keys.destroy_all
     user.forum_topic_visits.destroy_all
     user.saved_searches.destroy_all
+    user.login_sessions.active.find_each(&:revoke!)
 
     user.post_votes.active.negative.find_each do |vote|
       vote.soft_delete!(updater: user)
