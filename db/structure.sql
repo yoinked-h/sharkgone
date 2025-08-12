@@ -927,7 +927,8 @@ CREATE TABLE public.good_job_batches (
     callback_priority integer,
     enqueued_at timestamp(6) without time zone,
     discarded_at timestamp(6) without time zone,
-    finished_at timestamp(6) without time zone
+    finished_at timestamp(6) without time zone,
+    jobs_finished_at timestamp(6) without time zone
 );
 
 
@@ -948,7 +949,8 @@ CREATE TABLE public.good_job_executions (
     error text,
     error_event smallint,
     error_backtrace text[],
-    process_id uuid
+    process_id uuid,
+    duration interval
 );
 
 
@@ -1891,6 +1893,47 @@ ALTER SEQUENCE public.saved_searches_id_seq OWNED BY public.saved_searches.id;
 CREATE TABLE public.schema_migrations (
     version character varying NOT NULL
 );
+
+
+--
+-- Name: site_credentials; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.site_credentials (
+    id bigint NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    site integer NOT NULL,
+    creator_id bigint NOT NULL,
+    is_enabled boolean DEFAULT true NOT NULL,
+    is_public boolean DEFAULT true NOT NULL,
+    status integer DEFAULT 0 NOT NULL,
+    usage_count integer DEFAULT 0 NOT NULL,
+    error_count integer DEFAULT 0 NOT NULL,
+    last_used_at timestamp(6) without time zone,
+    last_error_at timestamp(6) without time zone,
+    credential jsonb DEFAULT '{}'::jsonb NOT NULL,
+    metadata jsonb DEFAULT '{}'::jsonb NOT NULL
+);
+
+
+--
+-- Name: site_credentials_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.site_credentials_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: site_credentials_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.site_credentials_id_seq OWNED BY public.site_credentials.id;
 
 
 --
@@ -2919,6 +2962,13 @@ ALTER TABLE ONLY public.saved_searches ALTER COLUMN id SET DEFAULT nextval('publ
 
 
 --
+-- Name: site_credentials id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.site_credentials ALTER COLUMN id SET DEFAULT nextval('public.site_credentials_id_seq'::regclass);
+
+
+--
 -- Name: tag_aliases id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -3399,6 +3449,14 @@ ALTER TABLE ONLY public.saved_searches
 
 ALTER TABLE ONLY public.schema_migrations
     ADD CONSTRAINT schema_migrations_pkey PRIMARY KEY (version);
+
+
+--
+-- Name: site_credentials site_credentials_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.site_credentials
+    ADD CONSTRAINT site_credentials_pkey PRIMARY KEY (id);
 
 
 --
@@ -4385,6 +4443,13 @@ CREATE INDEX index_good_jobs_on_batch_callback_id ON public.good_jobs USING btre
 --
 
 CREATE INDEX index_good_jobs_on_batch_id ON public.good_jobs USING btree (batch_id) WHERE (batch_id IS NOT NULL);
+
+
+--
+-- Name: index_good_jobs_on_concurrency_key_and_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_good_jobs_on_concurrency_key_and_created_at ON public.good_jobs USING btree (concurrency_key, created_at);
 
 
 --
@@ -5404,6 +5469,83 @@ CREATE INDEX index_sent_dmails_on_owner_id_and_created_at ON public.dmails USING
 
 
 --
+-- Name: index_site_credentials_on_creator_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_site_credentials_on_creator_id ON public.site_credentials USING btree (creator_id);
+
+
+--
+-- Name: index_site_credentials_on_credential; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_site_credentials_on_credential ON public.site_credentials USING gin (credential);
+
+
+--
+-- Name: index_site_credentials_on_error_count; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_site_credentials_on_error_count ON public.site_credentials USING btree (error_count);
+
+
+--
+-- Name: index_site_credentials_on_is_enabled; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_site_credentials_on_is_enabled ON public.site_credentials USING btree (is_enabled);
+
+
+--
+-- Name: index_site_credentials_on_is_public; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_site_credentials_on_is_public ON public.site_credentials USING btree (is_public);
+
+
+--
+-- Name: index_site_credentials_on_last_error_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_site_credentials_on_last_error_at ON public.site_credentials USING btree (last_error_at);
+
+
+--
+-- Name: index_site_credentials_on_last_used_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_site_credentials_on_last_used_at ON public.site_credentials USING btree (last_used_at);
+
+
+--
+-- Name: index_site_credentials_on_metadata; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_site_credentials_on_metadata ON public.site_credentials USING gin (metadata);
+
+
+--
+-- Name: index_site_credentials_on_site; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_site_credentials_on_site ON public.site_credentials USING btree (site);
+
+
+--
+-- Name: index_site_credentials_on_status; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_site_credentials_on_status ON public.site_credentials USING btree (status);
+
+
+--
+-- Name: index_site_credentials_on_usage_count; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_site_credentials_on_usage_count ON public.site_credentials USING btree (usage_count);
+
+
+--
 -- Name: index_tag_aliases_on_antecedent_name; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -5709,6 +5851,17 @@ CREATE INDEX index_user_events_on_created_at ON public.user_events USING btree (
 --
 
 CREATE INDEX index_user_events_on_ip_addr ON public.user_events USING btree (ip_addr);
+
+
+--
+-- Name: index_user_events_on_ip_addr_subnet; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_user_events_on_ip_addr_subnet ON public.user_events USING btree (network(set_masklen(ip_addr,
+CASE
+    WHEN (family(ip_addr) = 4) THEN 24
+    ELSE 64
+END)));
 
 
 --
@@ -6171,6 +6324,14 @@ ALTER TABLE ONLY public.post_replacements
 
 ALTER TABLE ONLY public.api_keys
     ADD CONSTRAINT fk_rails_32c28d0dc2 FOREIGN KEY (user_id) REFERENCES public.users(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- Name: site_credentials fk_rails_32d18ae384; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.site_credentials
+    ADD CONSTRAINT fk_rails_32d18ae384 FOREIGN KEY (creator_id) REFERENCES public.users(id);
 
 
 --
@@ -6700,6 +6861,11 @@ ALTER TABLE ONLY public.upload_media_assets
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250603085358'),
+('20250530193107'),
+('20250530193106'),
+('20250530091115'),
+('20250507024608'),
 ('20250502093010'),
 ('20241023091114'),
 ('20240607200251'),
