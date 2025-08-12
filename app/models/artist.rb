@@ -97,7 +97,7 @@ class Artist < ApplicationRecord
     end
 
     def remove_redundant_other_names
-      self.other_names -= [name] if name_changed? || other_names_changed?
+      other_names.reject! { |other_name| other_name.casecmp?(name) }
     end
   end
 
