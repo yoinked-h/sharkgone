@@ -203,10 +203,6 @@
 <% end %>
 
 <% content_for(:content) do %>
-  <% if !CurrentUser.user.new_post_navigation_layout %>
-    <%= render_post_navbar(@post, current_user: CurrentUser.user, search: params[:q]) %>
-  <% end %>
-
   <% if @post.is_banned? %>
     <div class="notice notice-small post-notice post-notice-banned">
       This page has been removed because of a takedown request or rule violation.
@@ -359,9 +355,7 @@
     <% end) %>
   <% end %>
 
-  <% if CurrentUser.user.new_post_navigation_layout %>
-    <%= render_post_navbar(@post, current_user: CurrentUser.user, search: params[:q]) %>
-  <% end %>
+  <%= render_post_navbar(@post, current_user: CurrentUser.user, search: params[:q]) %>
 
   <menu id="post-sections" class="mb-4">
     <% if Danbooru.config.comments_enabled?.to_s.truthy? %>

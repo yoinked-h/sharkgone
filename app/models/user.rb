@@ -28,7 +28,7 @@ class User < ApplicationRecord
     receive_email_notifications
     nest_tags
     _unused_enable_post_navigation
-    new_post_navigation_layout
+    _unused_new_post_navigation_layout
     _unused_enable_private_favorites
     _unused_enable_sequential_post_navigation
     _unused_hide_deleted_posts
@@ -101,7 +101,6 @@ class User < ApplicationRecord
 
   attr_reader :password
 
-  after_initialize :initialize_attributes, if: :new_record?
   validates :name, user_name: true, on: :create
   validates :password, length: { minimum: 5 }, if: ->(rec) { rec.new_record? || rec.password.present? }
   validates :default_image_size, inclusion: { in: %w[large original] }
@@ -932,10 +931,6 @@ class User < ApplicationRecord
   include ForumMethods
   include ApiMethods
   extend SearchMethods
-
-  def initialize_attributes
-    self.new_post_navigation_layout = true
-  end
 
   def dtext_shortlink(**options)
     "<@#{name}>"
