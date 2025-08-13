@@ -2,7 +2,7 @@
   <div id="a-index">
     <h1>AI Metadata History</h1>
 
-    <%= render "posts/partials/common/inline_blacklist" %>
+    <%= render BlacklistComponent.new(user: CurrentUser.user, inline: true) %>
 
     <%= search_form_for(ai_metadata_versions_path) do |f| %>
       <%= f.input :prompt_matches, label: "Prompt", input_html: { value: params.dig(:search, :prompt_matches) } %>
