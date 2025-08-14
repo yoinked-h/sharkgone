@@ -156,6 +156,9 @@ Autocomplete.initialize_tag_autocomplete = function() {
 
 Autocomplete.current_term = function($input, caret = $input.get(0).selectionStart) {
   let query = $input.get(0).value;
+  if ($input.data("autocomplete") === "ai-metadata-label") {
+    query = query.replaceAll(" ", "_");
+  }
   let term_before_caret = query.substring(0, caret);
   let term_after_caret = query.substring(caret).match(/\S*/)[0];
   let term = term_before_caret;
