@@ -129,16 +129,16 @@ class Post < ApplicationRecord
     # XXX depends on CurrentUser
     commentary = ArtistCommentary.new(**artist_commentary)
 
-    metadata = if load_metadata
-      AIMetadata.new_from_metadata(media_asset&.metadata.to_h)
+    if load_metadata
+      metadata = AIMetadata.new_from_metadata(media_asset&.metadata.to_h)
     else
-      AIMetadata.new(updater: CurrentUser.user)
+      metadata = AIMetadata.new(updater: CurrentUser.user)
     end
 
     metadata.assign_attributes({
-      prompt: ai_metadata[:prompt],
-      negative_prompt: ai_metadata[:negative_prompt],
-      parameters: ai_metadata.without(:prompt, :negative_prompt),
+      prompt: ai_metadata["prompt"],
+      negative_prompt: ai_metadata["negative_prompt"],
+      parameters: ai_metadata.without("prompt", "negative_prompt"),
     }.compact_blank)
 
     if add_artist_tag

@@ -34,7 +34,7 @@ AIMetadata.inject_names = function(form) {
   customFields.forEach(el => {
     let [name, value] = el.children;
     if (name.value && value.value) {
-      value.name = `ai_metadata[${name.value}]`;
+      value.name = `post[ai_metadata][${name.value}]`;
     }
   });
 };
@@ -94,13 +94,13 @@ AIMetadata.fetch_file_metadata = function() {
 };
 
 AIMetadata.load_from_file = function() {
-  Danbooru.Notice.notice("Loading metadata...");
+  Danbooru.Notice.info("Loading metadata...");
 
   this.fetch_file_metadata().then(this.fill_metadata).then(function (success) {
     var message = success ? "Metadata copied." : "Metadata copied; conflicting fields ignored.";
-    Danbooru.Notice.notice(message);
+    Danbooru.Notice.info(message);
   }).catch(function () {
-    Danbooru.Notice.notice("Loading metadata failed.");
+    Danbooru.Notice.info("Loading metadata failed.");
   });
 
   return false;

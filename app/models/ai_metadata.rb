@@ -2,17 +2,16 @@
 
 class AIMetadata < ApplicationRecord
   self.table_name = "ai_metadata"
-  self.ignored_columns = [:sampler, :seed, :steps, :cfg_scale, :model_hash]
 
   PARAMETER_ORDER = ["Sampler", "Seed", "Steps", "Cfg Scale", "Model Hash", "Width", "Height"]
-  PARAMETER_REGEX = /\s*([\w ]+):\s*("(?:\\|\"|[^\"])+"|[^,]*)(?:,|$)/
+  PARAMETER_REGEX = /\s*([\w ]+):\s*("(?:\\|"|[^\"])+"|[^,]*)(?:,|$)/
 
   include Versionable
   attr_accessor :updater
 
-  before_save :normalize_prompts
-  before_save :normalize_parameters
   before_validation :normalize_model_hash
+  before_validation :normalize_parameters
+  before_save :normalize_prompts
   validate :validate_model_hash, if: :model_hash_changed?
   validates :post_id, uniqueness: true
   belongs_to :post
@@ -20,7 +19,7 @@ class AIMetadata < ApplicationRecord
   # XXX post_id shouldn't be versionable but it needs to be set in new versions due to foreign key.
   versionable :prompt, :negative_prompt, :parameters, :post_id
 
-  scope :nonblank, -> {
+  scope :nonblank, lambda {
     where("prompt != '' or negative_prompt != '' or parameters != '{}'")
   }
 
@@ -65,7 +64,7 @@ class AIMetadata < ApplicationRecord
   def self.new_from_metadata(metadata)
     subject = new(updater: CurrentUser.user)
 
-    if metadata.has_key?("PNG:Comment")
+    if metadata.key?("PNG:Comment")
       begin
         params = JSON.parse(metadata["PNG:Comment"])
         subject.prompt = params.delete("prompt") || metadata["PNG:Description"]
@@ -75,7 +74,7 @@ class AIMetadata < ApplicationRecord
         end.to_h
       rescue JSON::ParserError
       end
-    elsif metadata.has_key?("PNG:Parameters") || metadata.has_key?("ExifIFD:UserComment")
+    elsif metadata.key?("PNG:Parameters") || metadata.key?("ExifIFD:UserComment")
       user_comment = Danbooru::JSON.parse(metadata["ExifIFD:UserComment"])
       if user_comment.present? && user_comment["extraMetadata"].present?
         extra_metadata = user_comment["extraMetadata"]&.gsub(/\\u([\da-fA-F]{4})/) { [$1].pack("H*").unpack("n*").pack("U*") } || ""
@@ -88,7 +87,7 @@ class AIMetadata < ApplicationRecord
         subject.prompt = prompt
         subject.negative_prompt = negative_prompt&.delete_prefix("Negative prompt: ")
         if params.present?
-          params = params.scan(PARAMETER_REGEX).map { |field| [field[0].downcase, field[1].tr('"', "")] }.to_h unless params.is_a?(Hash)
+          params = params.scan(PARAMETER_REGEX).to_h { |field| [field[0].downcase, field[1].tr('"', "")] } unless params.is_a?(Hash)
           subject.parameters = params.filter_map do |key, value|
             [key.gsub("_", " ").titleize, value] if key.present? && value.present?
           end.to_h
@@ -132,7 +131,7 @@ class AIMetadata < ApplicationRecord
 
   def sorted_parameters
     parameters.sort do |first, second|
-      [PARAMETER_ORDER.index(first[0]) || PARAMETER_ORDER.length + 1, first[0]] <=> [PARAMETER_ORDER.index(second[0]) || PARAMETER_ORDER.length + 1, second[0]]
+      [PARAMETER_ORDER.index(first[0]) || (PARAMETER_ORDER.length + 1), first[0]] <=> [PARAMETER_ORDER.index(second[0]) || (PARAMETER_ORDER.length + 1), second[0]]
     end
   end
 
@@ -142,23 +141,28 @@ class AIMetadata < ApplicationRecord
   end
 
   def normalize_parameters
-    self.parameters = self.parameters.filter_map do |key, value|
+    params = parameters.filter_map do |key, value|
       [key.gsub("_", " ").strip.titleize, value.strip] if key.present? && value.present?
     end.to_h
+    prompt = params["Prompt"]
+    negative_prompt = params["Negative Prompt"]
+    self.prompt = prompt if prompt.present?
+    self.negative_prompt = negative_prompt if negative_prompt.present?
+    self.parameters = params.without("Prompt", "Negative Prompt")
   end
 
   def model_hash_changed?
-    self.parameters["Model Hash"].present? && self.parameters["Model Hash"] != parameters_was["Model Hash"]
+    parameters["Model Hash"].present? && parameters["Model Hash"] != parameters_was["Model Hash"]
   end
 
   def normalize_model_hash
-    if self.parameters["Model Hash"].present?
-      self.parameters["Model Hash"] = self.parameters["Model Hash"].downcase
+    if parameters["Model Hash"].present?
+      parameters["Model Hash"] = parameters["Model Hash"].downcase
     end
   end
 
   def validate_model_hash
-    if self.parameters["Model Hash"].present? && !self.parameters["Model Hash"].match?(/\A[a-f0-9]+\Z/)
+    if parameters["Model Hash"].present? && !parameters["Model Hash"].match?(/\A[a-f0-9]+\Z/)
       errors.add(:model_hash, "is invalid")
     end
   end
