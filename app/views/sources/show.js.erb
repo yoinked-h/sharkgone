@@ -1,11 +1,13 @@
-$(".source-data").replaceWith("<%= j render_source_data(@source) %>");
+<% if @source.present? %>
+  $(".source-data").replaceWith("<%= j render_source_data(@source) %>");
 
-$(".translated-tags-related-tags-column").replaceWith("<%= j render "related_tags/translated_tags", source: @source %>");
-Danbooru.RelatedTag.update_selected();
+  $(".translated-tags-related-tags-column").replaceWith("<%= j render "related_tags/translated_tags", source: @source %>");
+  Danbooru.RelatedTag.update_selected();
 
-if ($("#c-uploads #a-show").length) {
-  Danbooru.Utility.alpineReady(() => {
-    $("#post_artist_commentary_original_title").val(<%= raw @source.dtext_artist_commentary_title.to_json %>);
-    $(".post_artist_commentary_original_description .dtext-editor").get(0).editor.dtext = <%= raw @source.dtext_artist_commentary_desc.to_json %>;
-  });
-}
+  if ($("#c-uploads #a-show").length) {
+    Danbooru.Utility.alpineReady(() => {
+      $("#post_artist_commentary_original_title").val(<%= raw @source.dtext_artist_commentary_title.to_json %>);
+      $(".post_artist_commentary_original_description .dtext-editor").get(0).editor.dtext = <%= raw @source.dtext_artist_commentary_desc.to_json %>;
+    });
+  }
+<% end %>
