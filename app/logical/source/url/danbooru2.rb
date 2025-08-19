@@ -5,7 +5,7 @@ class Source::URL::Danbooru2 < Source::URL
   attr_reader :user_id, :post_id, :md5, :image_url, :full_image_url
 
   def self.match?(url)
-    url.domain.in?(%w[donmai.us donmai.moe])
+  url.domain.in?(%w[donmai.us donmai.moe aibooru.online aibooru.download])
   end
 
   def parse
@@ -40,7 +40,12 @@ class Source::URL::Danbooru2 < Source::URL
   end
 
   def site_name
-    "Danbooru"
+    case domain
+    when "aibooru.online", "aibooru.download"
+      "AiBooru"
+    else
+      "Danbooru"
+    end
   end
 
   def candidate_full_image_urls
@@ -49,7 +54,7 @@ class Source::URL::Danbooru2 < Source::URL
 
   def full_image_url_for(file_ext)
     if image_url? && md5.present?
-      "https://cdn.donmai.us/original/#{md5[0..1]}/#{md5[2..3]}/#{md5}.#{file_ext}"
+  "https://#{cdn_host}/original/#{md5[0..1]}/#{md5[2..3]}/#{md5}.#{file_ext}"
     end
   end
 
@@ -59,13 +64,42 @@ class Source::URL::Danbooru2 < Source::URL
 
   def page_url
     if post_id.present?
-      "https://danbooru.donmai.us/posts/#{post_id}"
+      "https://#{site_host}/posts/#{post_id}"
     elsif md5.present?
-      "https://danbooru.donmai.us/posts?md5=#{md5}"
+      "https://#{site_host}/posts?md5=#{md5}"
     end
   end
 
   def profile_url
-    "https://danbooru.donmai.us/users/#{user_id}" if user_id.present?
+    "https://#{site_host}/users/#{user_id}" if user_id.present?
+  end
+
+  private
+
+  # Return the canonical site host for the current URL's domain.
+  # For Danbooru: danbooru.donmai.us; for AiBooru: aibooru.online
+  def site_host
+    case domain
+    when "donmai.us", "donmai.moe"
+      "danbooru.donmai.us"
+    when "aibooru.online", "aibooru.download"
+      "aibooru.online"
+    else
+      # default to current host if unknown
+      host
+    end
+  end
+
+  # Return the CDN host used for serving originals for the site.
+  # For Danbooru: cdn.donmai.us; for AiBooru: cdn.aibooru.download
+  def cdn_host
+    case domain
+    when "donmai.us", "donmai.moe"
+      "cdn.donmai.us"
+    when "aibooru.online", "aibooru.download"
+      "cdn.aibooru.download"
+    else
+      host
+    end
   end
 end

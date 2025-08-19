@@ -20,12 +20,12 @@ module Source
       end
 
       def page_url
-        "https://danbooru.donmai.us/posts/#{post_id}" if post_id.present?
+        "https://#{site_host}/posts/#{post_id}" if post_id.present?
       end
 
       def tags
         api_response[:tag_string].to_s.split.map do |tag|
-          [tag, "https://danbooru.donmai.us/posts?tags=#{::Danbooru::URL.escape(tag)}"]
+          [tag, "https://#{site_host}/posts?tags=#{::Danbooru::URL.escape(tag)}"]
         end
       end
 
@@ -47,9 +47,9 @@ module Source
         fields = %w[id source tag_string tag_string_artist media_asset artist_commentary].join(",")
 
         if post_id_from_url.present?
-          http.cache(1.minute).parsed_get("https://danbooru.donmai.us/posts/#{post_id_from_url}.json?only=#{fields}") || {}
+          http.cache(1.minute).parsed_get("https://#{site_host}/posts/#{post_id_from_url}.json?only=#{fields}") || {}
         elsif post_md5_from_url.present?
-          http.cache(1.minute).parsed_get("https://danbooru.donmai.us/posts.json?md5=#{post_md5_from_url}&only=#{fields}") || {}
+          http.cache(1.minute).parsed_get("https://#{site_host}/posts.json?md5=#{post_md5_from_url}&only=#{fields}") || {}
         else
           {}
         end
@@ -72,6 +72,17 @@ module Source
           return nil if parent_extractor.present?
 
           @sub_extractor ||= Source::Extractor.find(api_response[:source], default_extractor: nil, parent_extractor: self)
+        end
+
+        def site_host
+          case parsed_url.domain
+          when "donmai.us", "donmai.moe"
+            "danbooru.donmai.us"
+          when "aibooru.online", "aibooru.download"
+            "aibooru.online"
+          else
+            parsed_url.host || "danbooru.donmai.us"
+          end
         end
       end
     end
