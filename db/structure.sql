@@ -230,7 +230,8 @@ CREATE TABLE public.api_keys (
     permitted_ip_addresses inet[] DEFAULT '{}'::inet[] NOT NULL,
     uses integer DEFAULT 0 NOT NULL,
     last_used_at timestamp without time zone,
-    last_ip_address inet
+    last_ip_address inet,
+    last_user_agent character varying
 );
 
 
@@ -6984,6 +6985,7 @@ ALTER TABLE ONLY public.upload_media_assets
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250831142944'),
 ('20250720155738'),
 ('20250718142035'),
 ('20250716202530'),

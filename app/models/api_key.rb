@@ -13,6 +13,7 @@ class ApiKey < ApplicationRecord
   normalizes :permissions, with: ->(permissions) { permissions.compact_blank }
   normalizes :permitted_ip_addresses, with: ->(ips) { ips.compact_blank.sort.uniq }
   normalizes :name, with: ->(name) { name.unicode_normalize(:nfc).normalize_whitespace.strip }
+  normalizes :last_user_agent, with: ->(user_agent) { user_agent.to_s.truncate(800, separator: " ", omission: " ...") }
 
   belongs_to :user
 
