@@ -59,6 +59,10 @@
           <% if api_key.last_ip_address.present? %>
             <br>by <%= api_key.last_ip_address %>
           <% end %>
+
+          <% if api_key.last_user_agent.present? && CurrentUser.user.is_moderator? %>
+            <br>with <code><%= api_key.last_user_agent %></code>
+          <% end %>
         <% end %>
 
         <% t.column "Created" do |api_key| %>

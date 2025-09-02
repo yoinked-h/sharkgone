@@ -266,7 +266,7 @@ class SessionLoader
 
   def update_api_key(api_key)
     api_key.increment!(:uses, touch: :last_used_at)
-    api_key.update!(last_ip_address: request.remote_ip)
+    api_key.update!(last_ip_address: request.remote_ip, last_user_agent: request.user_agent)
   end
 
   def set_time_zone

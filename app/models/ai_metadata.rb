@@ -141,14 +141,14 @@ class AIMetadata < ApplicationRecord
   end
 
   def normalize_parameters
-    params = parameters.filter_map do |key, value|
-      [key.gsub("_", " ").strip.titleize, value.strip] if key.present? && value.present?
-    end.to_h
-    prompt = params["Prompt"]
-    negative_prompt = params["Negative Prompt"]
-    self.prompt = prompt if prompt.present?
-    self.negative_prompt = negative_prompt if negative_prompt.present?
-    self.parameters = params.without("Prompt", "Negative Prompt")
+    params = parameters.to_h do |key, value|
+      [key.gsub("_", " ").strip.titleize, value.strip]
+    end
+    prompt = params.delete("Prompt")
+    negative_prompt = params.delete("Negative Prompt")
+    self.prompt = prompt unless prompt.nil?
+    self.negative_prompt = negative_prompt unless negative_prompt.nil?
+    self.parameters = params.compact_blank
   end
 
   def model_hash_changed?
