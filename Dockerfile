@@ -235,7 +235,7 @@ ARG NODE_VERSION
 RUN <<EOS
   apt-get install -y --no-install-recommends xz-utils
 
-  curl -L https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.xz | tar --strip-components=1 -xJvf -
+  curl -L https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-arm64.tar.xz | tar --strip-components=1 -xJvf -
 
   cp -rdv ./bin /usr/local
   cp -rdv ./lib /usr/local
